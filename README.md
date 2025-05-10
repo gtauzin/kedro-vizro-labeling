@@ -9,24 +9,6 @@ This repository is a WIP example project integrating [Vizro](https://vizro.mckin
 This project uses [uv](https://docs.astral.sh/uv/) for packaging, and managing dependencies and environments.
 To install it, follow the [uv installation instructions](https://docs.astral.sh/uv/getting-started/installation/).
 
-To install the dependencies based on the `uv.lock` lock file, do:
-
-```bash
-uv sync
-```
-
-Then, to create a virtual environment, run:
-
-```bash
-uv venv
-```
-
-If you wish to activate the virtual environment, do as it suggests:
-
-```bash
-source .venv/bin/activate
-```
-
 To run the dashboard, you can do:
 
 ```bash
