@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 name = "kedro_vizro_labeling"
 readme = "README.md"
 dynamic = ["version"]
@@ -11,11 +11,31 @@ dependencies = [
     "ipython>=8.10",
     "jupyterlab>=3.0",
     "notebook",
+    "ipykernel",
     "kedro[jupyter]~=0.19.11",
-    "kedro-datasets[pandas-csvdataset, pandas-exceldataset, pandas-parquetdataset, plotly-plotlydataset, plotly-jsondataset, matplotlib-matplotlibwriter]>=3.0",
+    "kedro-datasets[pandas-csvdataset, pandas-parquetdataset]>=3.0",
     "kedro-viz>=6.7.0",
-    "scikit-learn~=1.5.1",
-    "seaborn~=0.12.1"
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+dashboards = [
+    "plotly>=6.0",
+    "vizro",
+    "dash-auth@git+https://github.com/plotly/dash-auth@main",
+]
+pipelines = [
+    "kedro-dagster",
+    "kedro-mlflow>=0.14.3",
+    "dagster==1.9.6",
+    # Pinning dagster versions pins dagster integrations' versions too
+    "dagster-mlflow",
+    "scikit-learn>=1.5",
+    "mlflow>=2.20",
+    "optuna>=4.2",
+    "optuna-integration>=4.2",
+    "seaborn~=0.12.1",
 ]
 
 [project.scripts]
@@ -23,7 +43,7 @@ dependencies = [
 
 [project.entry-points."kedro.hooks"]
 
-[project.optional-dependencies]
+[dependency-groups]
 docs = [
     "docutils<0.21",
     "sphinx>=5.3,<7.3",
@@ -83,3 +103,6 @@ select = [
     "T201", # Print Statement
 ]
 ignore = ["E501"]  # Ruff format takes care of line-too-long
+
+[tool.kedro_telemetry]
+project_id = "d5ca4bd8fe124d27a7146fb424f487ab"
