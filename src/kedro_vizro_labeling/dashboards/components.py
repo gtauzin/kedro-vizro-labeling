@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Optional
 
 import dash_bootstrap_components as dbc
 import vizro.models as vm
@@ -93,6 +93,7 @@ class DropdownMenuItem(vm.VizroBaseModel):
     type: Literal["dropdown_menu_item"] = "dropdown_menu_item"
     text: str = Field(default="Click me!", description="Text to be displayed on button.")
     href: str = Field(default="", description="URL (relative or absolute) to navigate to.")
+    # TODO: This makes it crash but could be useful.
     # actions: Annotated[
     #     list[ActionType],
     #     AfterValidator(_action_validator_factory("n_clicks")),
@@ -130,7 +131,10 @@ class DropdownMenu(vm.VizroBaseModel):
 
     Args:
         type (Literal["dropdown_menu"]): Defaults to `"dropdown_menu"`.
-        tabs (list[Container]): See [`Container`][vizro.models.Container].
+
+        label (str): The label displayed on the dropdown menu. Defaults to `"Menu"`.
+        items (conlist[DropdownMenuItem, min_length=1]): A list of `DropdownMenuItem` objects that define the items
+            in the dropdown menu. Must contain at least one item.
         extra (Optional[dict[str, Any]]): Extra keyword arguments that are passed to `dbc.DropdownMenu` and overwrite
             any defaults chosen by the Vizro team. This may have unexpected behavior.
             Visit the
@@ -167,7 +171,7 @@ class DropdownMenu(vm.VizroBaseModel):
 
 
 class CustomDashboard(vm.Dashboard):
-    """Custom Vizro Dashboard that enables cross-page stores.
+    """Custom Vizro Dashboard that enables authorization and group-based access control.
 
     Args:
         pages (list[Page]): See [`Page`][vizro.models.Page].
@@ -175,13 +179,17 @@ class CustomDashboard(vm.Dashboard):
             Defaults to `vizro_dark`.
         navigation (Navigation): See [`Navigation`][vizro.models.Navigation]. Defaults to `None`.
         title (str): Dashboard title to appear on every page on top left-side. Defaults to `""`.
+        settings_menu (Optional[DropdownMenu]): Optional dropdown menu to be displayed in the dashboard settings.
+        unauthentificated_modal (Optional[Modal]): Optional modal to be shown for unauthenticated users.
+        missing_permission_modal (Optional[Modal]): Optional modal to be shown when a user lacks permissions.
 
     """
 
     type: Literal["custom_dashboard"] = "custom_dashboard"
-    settings_menu: DropdownMenu | None = None
-    unauthentificated_modal: Modal | None = None
-    missing_permission_modal: Modal | None = None
+
+    settings_menu: Optional[DropdownMenu] = None
+    unauthentificated_modal: Optional[Modal] = None
+    missing_permission_modal: Optional[Modal] = None
 
     def _make_page_layout(self, *args, **kwargs):
         super_build_obj = super()._make_page_layout(*args, **kwargs)
