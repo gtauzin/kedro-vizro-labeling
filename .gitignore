@@ -23,6 +23,8 @@ data/**
 !data/01_raw/test/*
 !data/01_raw/train/*
 
+!data/02_intermediate/iris.csv
+
 # ignore kedro-viz metadata
 .viz
 
