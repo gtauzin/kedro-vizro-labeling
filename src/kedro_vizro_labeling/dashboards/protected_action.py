@@ -32,6 +32,8 @@ class ProtectedAction(vm.Action):
     # TODO: Commented out because could not add_type properly otherwise. type is now "action"
     # type: Literal["protected_action"] = "protected_action"
 
+    # AM comment: some of these are probably constant for the whole app I guess?
+    # I would guess only groups, check_type would be different for different instances of ProtectedAction?
     groups: list[str] | None = None
     groups_key: str = "groups"
     groups_str_split: str = None
@@ -172,6 +174,9 @@ class ProtectedAction(vm.Action):
         @callback(output=callback_outputs, inputs=callback_inputs, prevent_initial_call=True)
         def callback_wrapper(external: list[Any] | dict[str, Any], internal: dict[str, Any]) -> dict[str, Any]:
             unallowed_output = (no_update, ) * self._n_outputs
+
+            # AM comment: I think there's probably better ways to inject the extra outputs without overriding so much
+            # here and in the other methods. Let me try and think of how else to do it.
 
             unauthenticated_output, missing_permissions_output = None, None
             if self.unauthenticated_modal_id is not None and self.missing_permission_modal_id is not None:

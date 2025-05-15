@@ -11,10 +11,13 @@ from kedro_vizro_labeling.dashboards.components import (
     DropdownMenuItem,
     Modal,
 )
+from kedro_vizro_labeling.dashboards.iris import data_manager
 from kedro_vizro_labeling.dashboards.iris.data_manager import load_kedro_datasets
 from kedro_vizro_labeling.dashboards.protected_action import ProtectedAction
 
-data_manager = load_kedro_datasets(env="base", dataset_names=["iris"])
+# AM comment: no need to set to data_manager variable.
+load_kedro_datasets(env="base", dataset_names=["iris"])
+
 
 
 @capture("action")
@@ -30,6 +33,7 @@ vm.Page.add_type("components", Modal)
 from pydantic import Tag
 from typing import Annotated
 # TODO: this should be "protected_action" but there was a problem with `add_type`
+# AM TODO
 ProtectedAction = Annotated[ProtectedAction, Tag("action")]
 
 vm.Button.add_type("actions", ProtectedAction)
@@ -50,11 +54,17 @@ page_1 = vm.Page(
             text="Show histogram",
             actions=[
                 ProtectedAction(
+                    # AM question: is this actually how you want the flow to work or is it just a workaround? Compared
+                    # to my example where the plot is protected by the @capture("graph") and there's no button to
+                    # enable it.
                     function=show_plot(),
+                    # AM comment: FYI soon you'll be able to do just outputs=["admin-hist-chart"].
                     outputs=[
                         "admin-hist-chart.figure",
                     ],
                     groups=["Admin"],
+                    # AM question: it feels like these fields would probably be the same for every single
+                    # ProtectedAction instance in the app?
                     unauthenticated_modal_id="unauthenticated-modal",
                     missing_permission_modal_id="missing-permission-modal",
                 ),
