@@ -1,6 +1,6 @@
 import logging
 from pprint import pformat
-from typing import Any, Literal
+from typing import Any, Collection, Dict, List, Literal, Mapping, Union
 
 import vizro.models as vm
 from dash import Input, Output, callback, html, no_update
@@ -29,15 +29,15 @@ class ProtectedAction(vm.Action):
         check_type (Literal["one_of", "all_of", "none_of"]): Type of check to perform. Either "one_of", "all_of" or
             "none_of".
     """
-
-    type: Literal["protected_action"] = "protected_action"
+    # TODO: Commented out because could not add_type properly otherwise. type is now "action"
+    # type: Literal["protected_action"] = "protected_action"
 
     groups: list[str] | None = None
     groups_key: str = "groups"
     groups_str_split: str = None
     check_type: CheckType = "one_of"
     unauthenticated_modal_id: str | None = None
-    missing_permissions_modal_id: str | None = None
+    missing_permission_modal_id: str | None = None
 
     @property
     def _transformed_outputs(self) -> list[Output] | dict[str, Output]:
@@ -55,14 +55,15 @@ class ProtectedAction(vm.Action):
         def _transform_output(output):
             return Output(*output.split("."), allow_duplicate=True)
 
+        self._n_outputs = len(self.outputs)
         outputs = self.outputs
         if self.unauthenticated_modal_id is not None:
             outputs.append(f"{self.unauthenticated_modal_id}.is_open")
 
-        if self.missing_permissions_modal_id is not None:
-            outputs.append(f"{self.missing_permissions_modal_id}.is_open")
+        if self.missing_permission_modal_id is not None:
+            outputs.append(f"{self.missing_permission_modal_id}.is_open")
 
-        if isinstance(self.outputs, list):
+        if isinstance(outputs, list):
             callback_outputs = [_transform_output(output) for output in outputs]
 
             # Need to use a single Output in the @callback decorator rather than a single element list for the case
@@ -70,22 +71,64 @@ class ProtectedAction(vm.Action):
             # single element list (e.g. ["text"]).
             if len(callback_outputs) == 1:
                 callback_outputs = callback_outputs[0]
+
             return callback_outputs
 
-        return {output_name: _transform_output(output) for output_name, output in self.outputs.items()}
+        return {output_name: _transform_output(output) for output_name, output in outputs.items()}
 
     def _action_callback_function(
         self,
-        inputs: dict[str, Any] | list[Any],
-        outputs: dict[str, Output] | list[Output] | Output | None,
+        inputs: Union[Dict[str, Any], List[Any]],
+        outputs: Union[Dict[str, Output], List[Output], Output, None],
     ) -> Any:
-        return_value = super()._action_callback_function(inputs=inputs, outputs=outputs)
+        logger.debug("===== Running action with id %s, function %s =====", self.id, self.function._function.__name__)
+        if logger.isEnabledFor(logging.DEBUG):
+            logger.debug("Action inputs:\n%s", pformat(inputs, depth=3, width=200))
+            logger.debug("Action outputs:\n%s", pformat(outputs, width=200))
 
-        if self.unauthenticated_modal_id is not None and self.missing_permissions_modal_id is not None:
-            return_value.extend(False, False)
-        elif self.unauthenticated_modal_id is not None or self.missing_permissions_modal_id is not None:
-            return_value.extend(False)
+        if isinstance(inputs, Mapping):
+            return_value = self.function(**inputs)
+        else:
+            return_value = self.function(*inputs)
 
+        if self.unauthenticated_modal_id is not None and self.missing_permission_modal_id is not None:
+            if not isinstance(return_value, Collection):
+                return_value = [return_value]
+            return_value.extend([False, False])
+        elif self.unauthenticated_modal_id is not None or self.missing_permission_modal_id is not None:
+            if not isinstance(return_value, Collection):
+                return_value = [return_value]
+            return_value.extend([False])
+
+        # Delegate all handling of the return_value and mapping to appropriate outputs to Dash - we don't modify
+        # return_value to reshape it in any way. All we do is do some error checking to raise clearer error messages.
+        if not outputs:
+            if return_value is not None:
+                raise ValueError("Action function has returned a value but the action has no defined outputs.")
+        elif isinstance(outputs, dict):
+            if not isinstance(return_value, Mapping):
+                raise ValueError(
+                    "Action function has not returned a dictionary-like object "
+                    "but the action's defined outputs are a dictionary."
+                )
+            if set(outputs) != set(return_value):
+                raise ValueError(
+                    f"Keys of action's returned value {set(return_value) or {}} "
+                    f"do not match the action's defined outputs {set(outputs) or {}})."
+                )
+        elif isinstance(outputs, list):
+            if not isinstance(return_value, Collection):
+                raise ValueError(
+                    "Action function has not returned a list-like object but the action's defined outputs are a list."
+                )
+            if len(return_value) != len(outputs):
+                raise ValueError(
+                    f"Number of action's returned elements {len(return_value)} does not match the number"
+                    f" of action's defined outputs {len(outputs)}."
+                )
+
+        # If no error has been raised then the return_value is good and is returned as it is.
+        # This could be a list of outputs, dictionary of outputs or any single value including None.
         return return_value
 
     @_log_call
@@ -128,14 +171,16 @@ class ProtectedAction(vm.Action):
 
         @callback(output=callback_outputs, inputs=callback_inputs, prevent_initial_call=True)
         def callback_wrapper(external: list[Any] | dict[str, Any], internal: dict[str, Any]) -> dict[str, Any]:
-            unauthenticated_output, missing_permissions_output = None
-            if self.unauthenticated_modal_id is not None and self.missing_permissions_modal_id is not None:
-                unauthenticated_output = (no_update, True, False)
-                missing_permissions_output = (no_update, False, True)
+            unallowed_output = (no_update, ) * self._n_outputs
+
+            unauthenticated_output, missing_permissions_output = None, None
+            if self.unauthenticated_modal_id is not None and self.missing_permission_modal_id is not None:
+                unauthenticated_output = unallowed_output + (True, False)
+                missing_permissions_output = unallowed_output + (False, True)
             elif self.unauthenticated_modal_id is not None:
-                unauthenticated_output = (no_update, True)
-            elif self.missing_permissions_modal_id is not None:
-                missing_permissions_output = (no_update, True)
+                unauthenticated_output = unallowed_output + (True, )
+            elif self.missing_permission_modal_id is not None:
+                missing_permissions_output = unallowed_output + (True, )
 
             return_value = protected(
                 unauthenticated_output=unauthenticated_output,

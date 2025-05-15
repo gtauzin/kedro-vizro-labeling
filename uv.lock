@@ -717,11 +717,15 @@ wheels = [
 [[package]]
 name = "dash-auth"
 version = "2.3.0"
-source = { git = "https://github.com/plotly/dash-auth?rev=main#00165d8f6648b4fbb04d773ab01283c36b7ea773" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dash" },
     { name = "flask" },
     { name = "werkzeug" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8b/8a/27c2bfb5f9fa97acedce529f859fab4ad2bae805d3a7f2b87c251ff8a6ee/dash_auth-2.3.0.tar.gz", hash = "sha256:72df43248c15e121f8d5d710981e880deb2df546b564f2951a10ca50d7d92f6d", size = 17727 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/19/42/d636affcd8074f7f48156a99d8854e5be951d8601dcb4178231c92c988d1/dash_auth-2.3.0-py3-none-any.whl", hash = "sha256:2fa72d4ee128b4f9cf0c958157a986ffcd0b93d43b54d64e3cef5976ab7e0abe", size = 14428 },
 ]
 
 [[package]]
@@ -1826,7 +1830,7 @@ docs = [
 requires-dist = [
     { name = "dagster", marker = "extra == 'pipelines'", specifier = "==1.9.6" },
     { name = "dagster-mlflow", marker = "extra == 'pipelines'" },
-    { name = "dash-auth", marker = "extra == 'dashboards'", git = "https://github.com/plotly/dash-auth?rev=main" },
+    { name = "dash-auth", marker = "extra == 'dashboards'", specifier = ">=2.3" },
     { name = "ipykernel" },
     { name = "ipython", specifier = ">=8.10" },
     { name = "jupyterlab", specifier = ">=3.0" },
@@ -1844,7 +1848,7 @@ requires-dist = [
     { name = "scikit-learn", marker = "extra == 'pipelines'", specifier = ">=1.5" },
     { name = "scipy" },
     { name = "seaborn", marker = "extra == 'pipelines'", specifier = "~=0.12.1" },
-    { name = "vizro", marker = "extra == 'dashboards'" },
+    { name = "vizro", marker = "extra == 'dashboards'", specifier = ">=0.1.38" },
 ]
 provides-extras = ["dashboards", "pipelines"]
 

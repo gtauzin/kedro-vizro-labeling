@@ -179,16 +179,16 @@ class CustomDashboard(vm.Dashboard):
             Defaults to `vizro_dark`.
         navigation (Navigation): See [`Navigation`][vizro.models.Navigation]. Defaults to `None`.
         title (str): Dashboard title to appear on every page on top left-side. Defaults to `""`.
-        settings_menu (Optional[DropdownMenu]): Optional dropdown menu to be displayed in the dashboard settings.
-        unauthentificated_modal (Optional[Modal]): Optional modal to be shown for unauthenticated users.
+        user_menu (Optional[DropdownMenu]): Optional user dropdown menu to be displayed in the dashboard.
+        unauthenticated_modal (Optional[Modal]): Optional modal to be shown for unauthenticated users.
         missing_permission_modal (Optional[Modal]): Optional modal to be shown when a user lacks permissions.
 
     """
 
     type: Literal["custom_dashboard"] = "custom_dashboard"
 
-    settings_menu: Optional[DropdownMenu] = None
-    unauthentificated_modal: Optional[Modal] = None
+    user_menu: Optional[DropdownMenu] = None
+    unauthenticated_modal: Optional[Modal] = None
     missing_permission_modal: Optional[Modal] = None
 
     def _make_page_layout(self, *args, **kwargs):
@@ -205,10 +205,10 @@ class CustomDashboard(vm.Dashboard):
                 html.H4("Hello!", style={"margin-bottom": "0"}),
             ]
 
-        if self.settings_menu is not None:
-            additional_build_obj.append(self.settings_menu.build())
-        if self.unauthentificated_modal is not None:
-            additional_build_obj.append(self.unauthentificated_modal.build())
+        if self.user_menu is not None:
+            additional_build_obj.append(self.user_menu.build())
+        if self.unauthenticated_modal is not None:
+            additional_build_obj.append(self.unauthenticated_modal.build())
         if self.missing_permission_modal is not None:
             additional_build_obj.append(self.missing_permission_modal.build())
 
