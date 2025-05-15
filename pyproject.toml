@@ -22,8 +22,8 @@ dependencies = [
 [project.optional-dependencies]
 dashboards = [
     "plotly>=6.0",
-    "vizro",
-    "dash-auth@git+https://github.com/plotly/dash-auth@main",
+    "vizro>=0.1.38",
+    "dash-auth>=2.3",
 ]
 pipelines = [
     "kedro-dagster",
