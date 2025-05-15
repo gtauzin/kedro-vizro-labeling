@@ -33,7 +33,6 @@ vm.Page.add_type("components", Modal)
 from pydantic import Tag
 from typing import Annotated
 # TODO: this should be "protected_action" but there was a problem with `add_type`
-# AM TODO
 ProtectedAction = Annotated[ProtectedAction, Tag("action")]
 
 vm.Button.add_type("actions", ProtectedAction)
