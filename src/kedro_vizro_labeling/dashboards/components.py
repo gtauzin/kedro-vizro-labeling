@@ -12,7 +12,8 @@ from vizro.models._models_utils import _log_call
 
 logger = logging.getLogger(__name__)
 
-
+# AM comment: these models are all generally great! I'm really impressed by how you've made proper pydantic
+# models with nice looking fields and build methods and everything.
 class Modal(vm.VizroBaseModel):
     """Component provided to `Page` to trigger any defined `action` in `Page`.
 
@@ -32,7 +33,9 @@ class Modal(vm.VizroBaseModel):
             underlying component may change in the future. Defaults to `{}`.
 
     """
-
+    # AM comment: do we really want Containers here for header, body, footer? It's very flexible since you can put
+    # any component inside but feels potentially like overkill compared to just allowing markdown text and probably
+    # makes the formatting of the modal a little off in terms of spacing.
     type: Literal["modal"] = "modal"
     header: Container | None = Field(default=None, description="Container to be displayed on the modal's header.")
     body: Container | None = Field(default=None, description="Container to be displayed on the modal's body.")
@@ -125,7 +128,8 @@ class DropdownMenuItem(vm.VizroBaseModel):
 
         return dbc.DropdownMenuItem(**(defaults | self.extra))
 
-
+# AM comment: possibly if we implemented this in Vizro we would simplify a bit to as a single model
+# DropdownMenu that takes a list of text/href or similar rather than list[DropdownMenuItem]. Not sure though.
 class DropdownMenu(vm.VizroBaseModel):
     """Dropdown menu to organise lists of links and buttons into a toggleable overlay.
 
@@ -192,6 +196,7 @@ class CustomDashboard(vm.Dashboard):
     missing_permission_modal: Optional[Modal] = None
 
     def _make_page_layout(self, *args, **kwargs):
+        # AM comment: this is definitely the right way to add something to the header, nice work figuring it out!
         super_build_obj = super()._make_page_layout(*args, **kwargs)
         # We access the container with id="settings", where the theme switch is placed and add the H4.
         theme_switch = super_build_obj["settings"]
@@ -212,6 +217,8 @@ class CustomDashboard(vm.Dashboard):
         if self.missing_permission_modal is not None:
             additional_build_obj.append(self.missing_permission_modal.build())
 
+        # AM comment: super_build_obj["settings"].children.extend(additional_build_obj) should do it without needing
+        # theme_switch anywhere.
         super_build_obj["settings"].children = [
             theme_switch.children,
             *additional_build_obj,
