@@ -1,6 +1,6 @@
 import logging
 from pprint import pformat
-from typing import Any, Collection, Dict, List, Literal, Mapping, Union
+from typing import Any, Collection, Dict, List, Mapping, Union
 
 import vizro.models as vm
 from dash import Input, Output, callback, html, no_update
@@ -29,8 +29,6 @@ class ProtectedAction(vm.Action):
         check_type (Literal["one_of", "all_of", "none_of"]): Type of check to perform. Either "one_of", "all_of" or
             "none_of".
     """
-    # TODO: Commented out because could not add_type properly otherwise. type is now "action"
-    # type: Literal["protected_action"] = "protected_action"
 
     groups: list[str] | None = None
     groups_key: str = "groups"
@@ -57,11 +55,10 @@ class ProtectedAction(vm.Action):
 
         self._n_outputs = len(self.outputs)
         outputs = self.outputs
-        if self.unauthenticated_modal_id is not None:
-            outputs.append(f"{self.unauthenticated_modal_id}.is_open")
-
-        if self.missing_permission_modal_id is not None:
-            outputs.append(f"{self.missing_permission_modal_id}.is_open")
+        outputs += [
+            "unauthenticated-modal.is_open",
+            "missing-permission-modal.is_open",
+        ]
 
         if isinstance(outputs, list):
             callback_outputs = [_transform_output(output) for output in outputs]
@@ -91,14 +88,9 @@ class ProtectedAction(vm.Action):
         else:
             return_value = self.function(*inputs)
 
-        if self.unauthenticated_modal_id is not None and self.missing_permission_modal_id is not None:
-            if not isinstance(return_value, Collection):
-                return_value = [return_value]
-            return_value.extend([False, False])
-        elif self.unauthenticated_modal_id is not None or self.missing_permission_modal_id is not None:
-            if not isinstance(return_value, Collection):
-                return_value = [return_value]
-            return_value.extend([False])
+        if not isinstance(return_value, Collection):
+            return_value = [return_value]
+        return_value.extend([False, False])
 
         # Delegate all handling of the return_value and mapping to appropriate outputs to Dash - we don't modify
         # return_value to reshape it in any way. All we do is do some error checking to raise clearer error messages.
@@ -173,14 +165,8 @@ class ProtectedAction(vm.Action):
         def callback_wrapper(external: list[Any] | dict[str, Any], internal: dict[str, Any]) -> dict[str, Any]:
             unallowed_output = (no_update, ) * self._n_outputs
 
-            unauthenticated_output, missing_permissions_output = None, None
-            if self.unauthenticated_modal_id is not None and self.missing_permission_modal_id is not None:
-                unauthenticated_output = unallowed_output + (True, False)
-                missing_permissions_output = unallowed_output + (False, True)
-            elif self.unauthenticated_modal_id is not None:
-                unauthenticated_output = unallowed_output + (True, )
-            elif self.missing_permission_modal_id is not None:
-                missing_permissions_output = unallowed_output + (True, )
+            unauthenticated_output = unallowed_output + (True, False)
+            missing_permissions_output = unallowed_output + (False, True)
 
             return_value = protected(
                 unauthenticated_output=unauthenticated_output,
