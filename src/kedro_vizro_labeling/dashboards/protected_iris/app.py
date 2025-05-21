@@ -10,13 +10,18 @@ from vizro.managers import data_manager
 from vizro.models.types import capture
 
 from kedro_vizro_labeling.dashboards.components import (
-    CustomDashboard,
     DropdownMenu,
     DropdownMenuItem,
     Modal,
 )
-from kedro_vizro_labeling.dashboards.iris.data import load_kedro_datasets
-from kedro_vizro_labeling.dashboards.protected_action import ProtectedAction
+from kedro_vizro_labeling.dashboards.protected import (
+    ProtectedAction,
+    ProtectedDashboard,
+    ProtectedGraph,
+    ProtectedPage,
+    forbidden_figure,
+)
+from kedro_vizro_labeling.dashboards.protected_iris.data import load_kedro_datasets
 
 
 def get_openid_config_url() -> str:
@@ -32,7 +37,7 @@ def get_openid_config_url() -> str:
 
 openid_connect_url = get_openid_config_url()
 client_id = os.environ.get("OIDC_CLIENT_ID", "vizro-app")
-scopes = os.environ.get("OIDC_SCOPES", "openid email profile")
+scope = os.environ.get("OIDC_SCOPES", "openid email profile")
 secret_key = os.environ.get("SECRET_KEY", "vizro-dashboard-secret-key")
 
 data_manager.cache = Cache(
@@ -48,6 +53,10 @@ def show_plot():
     return px.histogram(df, x="sepal_width", color="species")
 
 
+@capture("graph")
+def forbidden_graph(data_frame):
+    return forbidden_figure
+
 vm.Page.add_type("controls", vm.Button)
 vm.Page.add_type("components", Modal)
 
@@ -56,16 +65,22 @@ page_1 = vm.Page(
     title="User page",
     components=[
         vm.Graph(id="scatter-chart", figure=px.scatter("iris", x="sepal_length", y="petal_width", color="species")),
+        ProtectedGraph(
+            id="protected-admin-hist-chart",
+            figure=px.scatter("iris", x="sepal_length", y="petal_width", color="species"),
+            groups=["Admin"],
+            groups_key="roles",
+        ),
         vm.Graph(
             id="admin-hist-chart",
-            figure=px.histogram(pd.DataFrame(columns=["sepal_width", "species"]), x="sepal_width", color="species"),
+            figure=forbidden_graph(pd.DataFrame()),
         ),
     ],
     controls=[
         vm.Filter(column="species", selector=vm.Dropdown(value=["ALL"])),
         vm.Button(
             id="admin-button",
-            text="Show histogram",
+            text="Show admin histogram",
             actions=[
                 ProtectedAction(
                     function=show_plot(),
@@ -80,7 +95,7 @@ page_1 = vm.Page(
     ],
 )
 
-page_2 = vm.Page(
+page_2 = ProtectedPage(
     title="Admin page",
     components=[
         vm.Graph(id="hist-chart", figure=px.histogram("iris", x="sepal_width", color="species")),
@@ -88,42 +103,13 @@ page_2 = vm.Page(
     controls=[
         vm.Filter(column="species", selector=vm.Dropdown(value=["ALL"])),
     ],
+    groups=["Admin"],
+    groups_key="roles",
 )
 
-dashboard = CustomDashboard(
+dashboard = ProtectedDashboard(
     pages=[page_1, page_2],
     title="Iris Dashboard",
-    user_menu=DropdownMenu(
-        label="Settings",
-        items=[
-            DropdownMenuItem(
-                text="Sign in with another account",
-                # href="",
-            ),
-            DropdownMenuItem(
-                text="Logout",
-                href="/logout",
-            ),
-        ],
-    ),
-    missing_permission_modal=Modal(
-        id="missing-permission-modal",
-        header=vm.Container(components=[vm.Text(text="Missing permissions.")]),
-        body=vm.Container(
-            components=[
-                vm.Text(
-                    text="You do not have the required permissions to perform this action. Sign in with another account."
-                )
-            ]
-        ),
-        footer=vm.Container(components=[vm.Button(text="Sign in")]),
-    ),
-    unauthenticated_modal=Modal(
-        id="unauthenticated-modal",
-        header=vm.Container(components=[vm.Text(text="Unauthenticated.")]),
-        body=vm.Container(components=[vm.Text(text="You are not authorized to perform this action. Please sign in.")]),
-        footer=vm.Container(components=[vm.Button(text="Sign in")]),
-    ),
 )
 
 app_name = "iris"
@@ -154,7 +140,6 @@ dash_app = vizro_app.dash
 # )
 
 # In practice, we would most use something like OIDCAuth
-# from dash_auth import OIDCAuth
 auth = OIDCAuth(
     dash_app,
     secret_key=secret_key,
@@ -169,7 +154,7 @@ auth.register_provider(
     client_id=client_id,
     server_metadata_url=openid_connect_url,
     client_kwargs={
-        "scope": scopes,
+        "scope": scope,
         "code_challenge_method": "S256",
         "token_endpoint_auth_method": "client_secret_post",
     },
