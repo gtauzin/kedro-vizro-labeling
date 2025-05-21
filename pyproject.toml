@@ -23,7 +23,7 @@ dependencies = [
 dashboards = [
     "plotly>=6.0",
     "vizro>=0.1.38",
-    "dash-auth>=2.3",
+    "dash-auth[oidc]>=2.3",
 ]
 pipelines = [
     "kedro-dagster",
