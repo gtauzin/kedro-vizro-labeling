@@ -162,11 +162,11 @@ class ProtectedDashboard(vm.Dashboard):
             items=[
                 DropdownMenuItem(
                     text="Sign in with another account",
-                    # href="",
+                    href="/oidc/idp/login",
                 ),
                 DropdownMenuItem(
                     text="Logout",
-                    href="/logout",
+                    href="/oidc/logout",
                 ),
             ],
         )
@@ -179,7 +179,7 @@ class ProtectedDashboard(vm.Dashboard):
             id="unauthenticated-modal",
             header=vm.Container(components=[vm.Text(text="Unauthenticated.")]),
             body=vm.Container(components=[vm.Text(text="You are not authorized to perform this action. Please sign in.")]),
-            footer=vm.Container(components=[vm.Button(text="Sign in")]),
+            footer=vm.Container(components=[vm.Button(text="Sign in", href="/oidc/idp/login")]),
         )
 
         missing_permission_modal = Modal(
@@ -192,7 +192,7 @@ class ProtectedDashboard(vm.Dashboard):
                     )
                 ]
             ),
-            footer=vm.Container(components=[vm.Button(text="Sign in")]),
+            footer=vm.Container(components=[vm.Button(text="Sign in", href="/oidc/idp/login")]),
         )
 
         super_build_obj.children.extend(

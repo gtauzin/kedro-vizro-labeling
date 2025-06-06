@@ -9,11 +9,6 @@ from vizro import Vizro
 from vizro.managers import data_manager
 from vizro.models.types import capture
 
-from kedro_vizro_labeling.dashboards.components import (
-    DropdownMenu,
-    DropdownMenuItem,
-    Modal,
-)
 from kedro_vizro_labeling.dashboards.protected import (
     ProtectedAction,
     ProtectedDashboard,
@@ -58,7 +53,6 @@ def forbidden_graph(data_frame):
     return forbidden_figure
 
 vm.Page.add_type("controls", vm.Button)
-vm.Page.add_type("components", Modal)
 
 
 page_1 = vm.Page(
