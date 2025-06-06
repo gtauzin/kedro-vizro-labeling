@@ -4,6 +4,15 @@
 
 This repository is a WIP example project integrating [Vizro](https://vizro.mckinsey.com/) into [Kedro](https://kedro.org/) for creating a time-series labeling dashboard.
 
+## Launching Keycloak
+
+We use [keycloak](https://www.keycloak.org/) as an OIDC access manager. Prior to running the dashboard, you need to spin it using Docker:
+
+```bash
+
+docker compose -f docker/dashboards-dev.docker-compose.yaml up
+```
+
 ## Running the Dashboard
 
 This project uses [uv](https://docs.astral.sh/uv/) for packaging, and managing dependencies and environments.
@@ -17,7 +26,7 @@ uv run --extra dashboards src/kedro_vizro_labeling/dashboards/iris/app.py
 
 and connect to the dashboard on [http://127.0.0.1:8050](http://127.0.0.1:8050/).
 
-You may user the following credentials to connect:
+You may use the following credentials to connect:
 
 ```bash
 Username=user1
@@ -31,6 +40,6 @@ Username=admin1
 Password=admin1
 ```
 
-where `user_1` has the `Viewer` group permissions and `admin_1` has both the `Viewer` and `Admin` permissions.
+where `user1` has the `Viewer` group permissions and `admin1` has both the `Viewer` and `Admin` permissions.
 
 If you click, on the "Show histogram" button with only the `Viewer` permissions, it will open a Modal and you won't see the histogram.
