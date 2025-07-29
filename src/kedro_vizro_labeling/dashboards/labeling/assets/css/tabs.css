@@ -1,0 +1,21 @@
+.nav-tabs {
+  width: max-content;
+}
+
+div.tab-content {
+    height: 0;
+    margin: 0;          /* Remove any inherited margins */
+    padding: 0;         /* Remove any inherited padding */
+    border: none;       /* Remove border if set */
+    background: none;   /* Remove background settings */
+    display: block;     /* Ensure proper display, override potential flex/grid values */
+  }
+
+div:has(> #div.tab-content) {
+  height: 0;
+  margin: 0;          /* Remove any inherited margins */
+  padding: 0;         /* Remove any inherited padding */
+  border: none;       /* Remove border if set */
+  background: none;   /* Remove background settings */
+  display: block;     /* Ensure proper display, override potential flex/grid values */
+}

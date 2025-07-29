@@ -1,0 +1,16 @@
+div[id^="label-legend"] .form-check-inline {
+    margin-right: 20px;
+}
+
+div[id^="label-legend"] .form-check {
+    padding-left: 16px;
+}
+
+h3#label-legend_title_content.container-title {
+    /* border-top: 1px solid var(--border-subtleAlpha01);
+    padding-top: 10px; */
+    padding-left: 0px;
+    font-size:14px;
+    -webkit-tap-highlight-color: rgba(31, 34, 46, 0);
+    color: rgba(255, 255, 255, 0.6);
+}
