@@ -1,0 +1,7 @@
+#left-main {
+  width: 465px;
+}
+
+#control-panel:not(:empty) {
+    border-bottom: 0px solid var(--border-subtleAlpha01);
+}
